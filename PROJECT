@@ -1,0 +1,6 @@
+domain: kube.node.labeler.io
+layout:
+- go.kubebuilder.io/v3
+projectName: kube-node-labeler
+repo: kube-node-labeler
+version: "3"
