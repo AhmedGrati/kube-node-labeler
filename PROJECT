@@ -3,4 +3,14 @@ layout:
 - go.kubebuilder.io/v3
 projectName: kube-node-labeler
 repo: kube-node-labeler
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kube.node.labeler.io
+  group: kubebuilder
+  kind: NodeLabeler
+  path: kube-node-labeler/api/v1alpha1
+  version: v1alpha1
 version: "3"

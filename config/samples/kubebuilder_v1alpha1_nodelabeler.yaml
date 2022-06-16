@@ -1,0 +1,18 @@
+apiVersion: kubebuilder.kube.node.labeler.io/v1alpha1
+kind: NodeLabeler
+metadata:
+  name: nodelabeler-sample
+spec:
+  nodeSelectorTerms:
+  - matchExpressions:
+    - key: kubernetes.io/hostname
+      operator: In
+      values:
+      - minikube
+    - key: beta.kubernetes.io/os
+      operator: In
+      values:
+      - linux
+  - matchExpressions:
+    - key: another-node-label-key
+      operator: Exists
