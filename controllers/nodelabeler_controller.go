@@ -54,9 +54,6 @@ func (r *NodeLabelerReconciler) getAllNodes(ctx context.Context) corev1.NodeList
 	nodes := &corev1.NodeList{}
 	opts := []client.ListOption{}
 	r.List(ctx, nodes, opts...)
-	for key, node := range nodes.Items {
-		fmt.Printf("Node Number %v: %s\n", key, node.Name)
-	}
 	return *nodes
 }
 
@@ -64,17 +61,16 @@ func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	l := log.FromContext(ctx)
 	nodeLabeler := &kubebuilderv1alpha1.NodeLabeler{}
 	r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, nodeLabeler)
-	_ = r.getAllNodes(ctx)
+	allNodes := r.getAllNodes(ctx)
+	filteredNodes := corev1.NodeList{}
 	expressions := nodeLabeler.Spec.NodeSelectorTerms
-	for _, expression := range expressions {
-		matchExpressions := expression.MatchExpressions
-		matchFields := expression.MatchFields
-
-		if len(matchExpressions) > 0 {
-			_ = helpers.HandleMatchExpressions(matchExpressions)
-			_ = helpers.HandleMatchFields(matchFields)
+	for _, node := range allNodes.Items {
+		if match := helpers.NodeMatchesNodeSelectorTerms(&node, expressions); match {
+			filteredNodes.Items = append(filteredNodes.Items, node)
 		}
-
+	}
+	for k, node := range filteredNodes.Items {
+		fmt.Printf("Node Number %v: %s\n", k, node.Name)
 	}
 	l.Info("The Node Labeler is ready to work", "spec", nodeLabeler.Spec)
 	return ctrl.Result{}, nil
