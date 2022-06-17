@@ -18,10 +18,11 @@ package controllers
 
 import (
 	"context"
-	v1 "k8s.io/api/core/v1"
+	"fmt"
 	kubebuilderv1alpha1 "kube-node-labeler/api/v1alpha1"
 	"kube-node-labeler/helpers"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -48,10 +49,22 @@ type NodeLabelerReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.2/pkg/reconcile
+
+func (r *NodeLabelerReconciler) getAllNodes(ctx context.Context) corev1.NodeList {
+	nodes := &corev1.NodeList{}
+	opts := []client.ListOption{}
+	r.List(ctx, nodes, opts...)
+	for key, node := range nodes.Items {
+		fmt.Printf("Node Number %v: %s\n", key, node.Name)
+	}
+	return *nodes
+}
+
 func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
 	nodeLabeler := &kubebuilderv1alpha1.NodeLabeler{}
 	r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, nodeLabeler)
+	_ = r.getAllNodes(ctx)
 	expressions := nodeLabeler.Spec.NodeSelectorTerms
 	for _, expression := range expressions {
 		matchExpressions := expression.MatchExpressions

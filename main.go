@@ -77,7 +77,6 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-
 	if err = (&controllers.NodeLabelerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
