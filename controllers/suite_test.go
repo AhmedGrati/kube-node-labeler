@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
+	ctrl "sigs.k8s.io/controller-runtime"
 	kubebuilderv1alpha1 "kube-node-labeler/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
@@ -40,7 +40,7 @@ import (
 var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
-
+var nodeLabelerReconciler *NodeLabelerReconciler
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
@@ -72,6 +72,24 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
+
+	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
+		Scheme: scheme.Scheme,
+		MetricsBindAddress: ":8090",
+	})
+	Expect(err).NotTo(HaveOccurred())
+	Expect(k8sManager.GetClient()).ToNot(BeNil())
+
+	nodeLabelerReconciler = &NodeLabelerReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sClient.Scheme(),
+	}
+	err = nodeLabelerReconciler.SetupWithManager(k8sManager)
+
+	go func() {
+		err = k8sManager.Start(ctrl.SetupSignalHandler())
+		Expect(err).ToNot(HaveOccurred())
+	}()
 
 }, 60)
 
