@@ -64,3 +64,18 @@ func generateSampleNodeLabelerObject() *v1alpha1.NodeLabeler {
 		Spec: *generateSampleNodeLabelerSpec(),
 	}
 }
+
+func generateWrongNodeLabelerObjectMeta() *metav1.ObjectMeta {
+		return &metav1.ObjectMeta{
+		Name: NodeLabelerName,
+		Namespace: "custom-namespace",
+	}
+}
+
+func generateWrongNodeLabelerObject() *v1alpha1.NodeLabeler {
+	return &v1alpha1.NodeLabeler{
+		TypeMeta: *generateSampleTypeMeta(),
+		ObjectMeta: *generateWrongNodeLabelerObjectMeta(),
+		Spec: *generateSampleNodeLabelerSpec(),
+	}
+}
