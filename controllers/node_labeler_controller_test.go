@@ -16,10 +16,6 @@ var _ = Describe("NodeLabeler Controller Test", func() {
 		It("Should delete a node labeler object successfully", func() {
 			Expect(k8sClient.Delete(context.Background(), nodeLabelerObject)).Should(Succeed())
 		})
-		It("Should Update a node labeler object successfully", func() {
-			nodeLabelerObject.ObjectMeta.Name = "another-node-labeler-name"
-			Expect(k8sClient.Update(context.Background(), nodeLabelerObject, &client.UpdateOptions{})).Should(Succeed())
-		})
 		It("Should fail creating a node labeler", func() {
 			Expect(k8sClient.Create(context.Background(), wrongNodeLabelerObject)).ShouldNot(Succeed())
 		})
