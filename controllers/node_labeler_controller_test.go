@@ -4,7 +4,6 @@ import (
 	"context"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 var _ = Describe("NodeLabeler Controller Test", func() {
 	Context("Simple NodeLabeler", func() {
