@@ -12,5 +12,8 @@ var _ = Describe("NodeLabeler Controller Test", func() {
 		It("Should create a node labeler object successfully", func () {
 			Expect(k8sClient.Create(context.Background(), nodeLabelerObject)).Should(Succeed())
 		})
+		It("Should delete a node labeler object successfully", func() {
+			Expect(k8sClient.Delete(context.Background(), nodeLabelerObject)).Should(Succeed())
+		})
 	})
 })
