@@ -5,7 +5,7 @@ Kube Node Labeler is a Kubernetes operator which aims to automate the labeling o
 TODO: Add detailed description of the utility of this project and its features. 
 
 ## Features
-- [ ] Node selection
+- [x] Node selection
 - [ ] Adding attributes
   - [ ] Labels
   - [ ] Annotations

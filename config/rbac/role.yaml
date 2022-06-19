@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - kubebuilder.kube.node.labeler.io
+  resources:
+  - nodelabelers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kubebuilder.kube.node.labeler.io
+  resources:
+  - nodelabelers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - kubebuilder.kube.node.labeler.io
+  resources:
+  - nodelabelers/status
+  verbs:
+  - get
+  - patch
+  - update
