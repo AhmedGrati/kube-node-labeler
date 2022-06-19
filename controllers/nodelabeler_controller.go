@@ -66,7 +66,7 @@ func (r *NodeLabelerReconciler) LabelNodes(nodes *corev1.NodeList, l metav1.Obje
 		if err := mergo.Merge(&cop.ObjectMeta, l, mergo.WithAppendSlice); err != nil {
 			_ = fmt.Errorf("ERROR: %s", err)
 		}
-		if err := mergo.Merge(&cop.Spec, spec, mergo.WithOverride); err != nil {
+		if err := mergo.Merge(&cop.Spec, spec, mergo.WithAppendSlice); err != nil {
 			_ = fmt.Errorf("ERROR: %s", err)
 		}
 		if reflect.DeepEqual(cop, node) {
