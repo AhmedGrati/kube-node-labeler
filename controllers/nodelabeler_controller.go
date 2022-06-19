@@ -21,8 +21,11 @@ import (
 	"fmt"
 	kubebuilderv1alpha1 "kube-node-labeler/api/v1alpha1"
 	"kube-node-labeler/helpers"
+	"reflect"
 
+	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -57,8 +60,24 @@ func (r *NodeLabelerReconciler) getAllNodes(ctx context.Context) corev1.NodeList
 	return *nodes
 }
 
+func (r *NodeLabelerReconciler) LabelNodes(nodes *corev1.NodeList, l metav1.ObjectMeta, spec corev1.NodeSpec) {
+	for _, node := range nodes.Items {
+		cop := node.DeepCopy()
+		if err := mergo.Merge(&cop.ObjectMeta, l, mergo.WithAppendSlice); err != nil {
+			_ = fmt.Errorf("ERROR: %s", err)
+		}
+		if err := mergo.Merge(&cop.Spec, spec, mergo.WithOverride); err != nil {
+			_ = fmt.Errorf("ERROR: %s", err)
+		}
+		if reflect.DeepEqual(cop, node) {
+			fmt.Println("Node Unchanged")
+		}
+		r.Client.Update(context.Background(), cop, &client.UpdateOptions{})
+	}
+}
+
 func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	l := log.FromContext(ctx)
+	_ = log.FromContext(ctx)
 	nodeLabeler := &kubebuilderv1alpha1.NodeLabeler{}
 	r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, nodeLabeler)
 	allNodes := r.getAllNodes(ctx)
@@ -69,10 +88,7 @@ func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			filteredNodes.Items = append(filteredNodes.Items, node)
 		}
 	}
-	for k, node := range filteredNodes.Items {
-		fmt.Printf("Node Number %v: %s\n", k, node.Name)
-	}
-	l.Info("The Node Labeler is ready to work", "spec", nodeLabeler.Spec)
+	r.LabelNodes(&filteredNodes, nodeLabeler.Spec.Merge.ObjectMeta, nodeLabeler.Spec.Merge.NodeSpec)
 	return ctrl.Result{}, nil
 }
 

@@ -16,3 +16,12 @@ spec:
   - matchExpressions:
     - key: another-node-label-key
       operator: Exists
+  merge:
+    labels:
+      custom-label: "true"
+    annotations:
+      node-labeler-operator: works
+    taints:
+    - key: dedicated
+      value: foo
+      effect: PreferNoSchedule
