@@ -17,7 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,13 +27,22 @@ import (
 // NodeLabelerSpec defines the desired state of NodeLabeler
 type NodeLabelerSpec struct {
 	v1.NodeSelector `json:",inline"`
-	DryRun          bool `json:"dryRun,omitempty"`
+
+	DryRun bool `json:"dryRun,omitempty"`
+
+	Merge MergeSpec `json:"merge,omitempty"`
 }
 
 // NodeLabelerStatus defines the observed state of NodeLabeler
 type NodeLabelerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+}
+
+type MergeSpec struct {
+	metav1.ObjectMeta `json:",inline" protobuf:"bytes,1,opt,name=metadata"`
+
+	v1.NodeSpec `json:",inline" protobuf:"bytes,2,opt,name=spec"`
 }
 
 //+kubebuilder:object:root=true

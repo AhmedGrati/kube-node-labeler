@@ -6,10 +6,10 @@ TODO: Add detailed description of the utility of this project and its features.
 
 ## Features
 - [x] Node selection
-- [ ] Adding attributes
-  - [ ] Labels
-  - [ ] Annotations
-  - [ ] Taints
+- [x] Adding attributes
+  - [x] Labels
+  - [x] Annotations
+  - [x] Taints
 - [ ] Removing attributes
 - [ ] Overwrite attributes
 ## Note
