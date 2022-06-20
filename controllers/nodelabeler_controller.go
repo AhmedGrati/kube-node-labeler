@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"kube-node-labeler/api/v1alpha1"
 	kubebuilderv1alpha1 "kube-node-labeler/api/v1alpha1"
 	"kube-node-labeler/helpers"
 	"reflect"
@@ -31,6 +32,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+)
+
+const (
+	MergeStrategy = "merge"
+	OverwriteStrategy = "overwrite"
 )
 
 // NodeLabelerReconciler reconciles a NodeLabeler object
@@ -60,20 +66,28 @@ func (r *NodeLabelerReconciler) getAllNodes(ctx context.Context) corev1.NodeList
 	return *nodes
 }
 
-func (r *NodeLabelerReconciler) LabelNodes(nodes *corev1.NodeList, l metav1.ObjectMeta, spec corev1.NodeSpec) {
-	for _, node := range nodes.Items {
-		cop := node.DeepCopy()
-		if err := mergo.Merge(&cop.ObjectMeta, l, mergo.WithAppendSlice); err != nil {
-			_ = fmt.Errorf("ERROR: %s", err)
-		}
-		if err := mergo.Merge(&cop.Spec, spec, mergo.WithAppendSlice); err != nil {
-			_ = fmt.Errorf("ERROR: %s", err)
-		}
-		if reflect.DeepEqual(cop, node) {
-			fmt.Println("Node Unchanged")
-		}
-		r.Client.Update(context.Background(), cop, &client.UpdateOptions{})
+func (r* NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l metav1.ObjectMeta, spec corev1.NodeSpec, strategyFunc func (*mergo.Config)) {
+	cop := node.DeepCopy()
+	if err := mergo.Merge(&cop.ObjectMeta, l, strategyFunc); err != nil {
+		_ = fmt.Errorf("ERROR: %s", err)
 	}
+	if err := mergo.Merge(&cop.Spec, spec, strategyFunc); err != nil {
+		_ = fmt.Errorf("ERROR: %s", err)
+	}
+	if reflect.DeepEqual(cop, node) {
+		fmt.Printf("Node unchanged")
+	}
+	r.Client.Update(context.Background(), cop, &client.UpdateOptions{})
+}
+
+
+
+func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec) {
+	for _, node := range nodes.Items {
+		r.AssignAttributesToNodes(&node, nodeLabelerSpec.Merge.ObjectMeta, nodeLabelerSpec.Merge.NodeSpec, mergo.WithAppendSlice)
+		r.AssignAttributesToNodes(&node, nodeLabelerSpec.Overwrite.ObjectMeta, nodeLabelerSpec.Overwrite.NodeSpec, mergo.WithOverride)
+	}
+
 }
 
 func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -88,7 +102,7 @@ func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			filteredNodes.Items = append(filteredNodes.Items, node)
 		}
 	}
-	r.LabelNodes(&filteredNodes, nodeLabeler.Spec.Merge.ObjectMeta, nodeLabeler.Spec.Merge.NodeSpec)
+	r.ManageNodes(&filteredNodes, nodeLabeler.Spec)
 	return ctrl.Result{}, nil
 }
 
