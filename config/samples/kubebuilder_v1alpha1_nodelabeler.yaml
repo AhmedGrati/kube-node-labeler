@@ -16,12 +16,14 @@ spec:
   - matchExpressions:
     - key: another-node-label-key
       operator: Exists
-  # overwrite:
-  #   labels:
-  #     custom-label: "override-true"
+  overwrite:
+    labels:
+      custom: "override-true"
+      test-add: "hey-override"
   merge:
     labels:
       custom-label: "true"
+      test-add: "hey"
     annotations:
       node-labeler-operator: works
     taints:

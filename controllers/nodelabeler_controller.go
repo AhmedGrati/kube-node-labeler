@@ -83,7 +83,7 @@ func (r *NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l met
 func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec) {
 	for _, node := range nodes.Items {
 		r.AssignAttributesToNodes(&node, nodeLabelerSpec.Merge.ObjectMeta, nodeLabelerSpec.Merge.NodeSpec, mergo.WithAppendSlice)
-		// r.AssignAttributesToNodes(&node, nodeLabelerSpec.Overwrite.ObjectMeta, nodeLabelerSpec.Overwrite.NodeSpec, mergo.WithOverride)
+		r.AssignAttributesToNodes(&node, nodeLabelerSpec.Overwrite.ObjectMeta, nodeLabelerSpec.Overwrite.NodeSpec, mergo.WithOverride)
 	}
 
 }
