@@ -28,6 +28,7 @@ import (
 type NodeLabelerSpec struct {
 	v1.NodeSelector `json:",inline"`
 
+	// // +optional
 	DryRun bool `json:"dryRun,omitempty"`
 
 	Merge MergeSpec `json:"merge,omitempty"`
@@ -40,14 +41,15 @@ type NodeLabelerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
+
 type OverwriteSpec struct {
-	metav1.ObjectMeta `json:",inline" protobuf:"bytes,1,opt,name=metadata"`
+	metav1.ObjectMeta `json:",omitempty"`
 
 	v1.NodeSpec `json:",inline" protobuf:"bytes,2,opt,name=spec"`
 }
 
 type MergeSpec struct {
-	metav1.ObjectMeta `json:",inline" protobuf:"bytes,1,opt,name=metadata"`
+	metav1.ObjectMeta `json:",omitempty"`
 
 	v1.NodeSpec `json:",inline" protobuf:"bytes,2,opt,name=spec"`
 }

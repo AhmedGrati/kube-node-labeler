@@ -16,6 +16,9 @@ spec:
   - matchExpressions:
     - key: another-node-label-key
       operator: Exists
+  # overwrite:
+  #   labels:
+  #     custom-label: "override-true"
   merge:
     labels:
       custom-label: "true"

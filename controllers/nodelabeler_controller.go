@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	MergeStrategy = "merge"
+	MergeStrategy     = "merge"
 	OverwriteStrategy = "overwrite"
 )
 
@@ -66,7 +66,7 @@ func (r *NodeLabelerReconciler) getAllNodes(ctx context.Context) corev1.NodeList
 	return *nodes
 }
 
-func (r* NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l metav1.ObjectMeta, spec corev1.NodeSpec, strategyFunc func (*mergo.Config)) {
+func (r *NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l metav1.ObjectMeta, spec corev1.NodeSpec, strategyFunc func(*mergo.Config)) {
 	cop := node.DeepCopy()
 	if err := mergo.Merge(&cop.ObjectMeta, l, strategyFunc); err != nil {
 		_ = fmt.Errorf("ERROR: %s", err)
@@ -80,12 +80,10 @@ func (r* NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l met
 	r.Client.Update(context.Background(), cop, &client.UpdateOptions{})
 }
 
-
-
 func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec) {
 	for _, node := range nodes.Items {
 		r.AssignAttributesToNodes(&node, nodeLabelerSpec.Merge.ObjectMeta, nodeLabelerSpec.Merge.NodeSpec, mergo.WithAppendSlice)
-		r.AssignAttributesToNodes(&node, nodeLabelerSpec.Overwrite.ObjectMeta, nodeLabelerSpec.Overwrite.NodeSpec, mergo.WithOverride)
+		// r.AssignAttributesToNodes(&node, nodeLabelerSpec.Overwrite.ObjectMeta, nodeLabelerSpec.Overwrite.NodeSpec, mergo.WithOverride)
 	}
 
 }
