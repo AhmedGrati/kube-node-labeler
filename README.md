@@ -1,30 +1,27 @@
 # kube-node-labeler
 
-Kube Node Labeler is a Kubernetes operator which aims to automate the labeling of Kubernetes nodes for operators.
+Kube Node Labeler is a Kubernetes operator which aims to automate the management of Kubernetes nodes for administrators in terms of attributes like Labels, Taint, and Annotations.
 
-## Description
-
-TODO: Add detailed description of the utility of this project and its features.
-
-## Features
-
-- [x] Node selection
-- [x] Adding attributes
-  - [x] Labels
-  - [x] Annotations
-  - [x] Taints
-- [ ] Removing attributes
-- [ ] Overwrite attributes
-  - [ ] Labels
-  - [ ] Annotations
-  - [ ] Taints
-
+To read more about Kubernetes operators you could read this amazing <a href="https://github.com/cncf/tag-app-delivery/blob/main/operator-wg/whitepaper/Operator-WhitePaper_v1-0.md">white paper</a> written by the CNCF(Cloud Native Computing Foundation).
 ## Note
 
 Project still under development.
 
-<!-- ## Getting Started
-You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
+## Use Case
+When a node is down you lose all the attached Attributes and NodeSpec, so it is frustrating for Kubernetes administrators to re-configure this node. You could generalize it for a 1xx-nodes cluster :').
+
+## Features
+
+- [x] Node Selection
+- [x] Adding Attributes
+- [x] Overwrite Attributes
+- [ ] Perform Actions on Specific Number of Nodes
+- [ ] Add Regex Pattern for Nodes Selection
+
+Attributes = Labels, Taints, Annotations
+
+## Getting Started
+You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) or [Minikube](https://minikube.sigs.k8s.io/docs/) to get a local cluster for testing, or run against a remote cluster.
 **Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
 ### Running on the cluster
@@ -109,4 +106,4 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
-limitations under the License. -->
+limitations under the License.

@@ -1,9 +1,10 @@
 package controllers
 
 import (
+	"kube-node-labeler/api/v1alpha1"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"kube-node-labeler/api/v1alpha1"
 )
 
 const (
@@ -18,6 +19,46 @@ var NodeLabelerLabels = map[string]string{
 }
 var NodeLabelerAnnotations = map[string]string{
 	"annotation1": "value1",
+}
+
+var LabelsToMerge = map[string]string{
+	"merge-label": "true",
+	"test-label":  "true",
+}
+
+var AnnotationsToMerge = map[string]string{
+	"merge-annotation": "true",
+}
+
+var TaintsToMerge = []corev1.Taint{
+	{
+		Key:    "key1",
+		Value:  "value1",
+		Effect: corev1.TaintEffectNoSchedule,
+	},
+	{
+		Key:    "key2",
+		Value:  "value2",
+		Effect: corev1.TaintEffectNoExecute,
+	},
+}
+
+var LabelsToOverwrite = map[string]string{
+	"overwrite-label": "true",
+	"merge-label":     "false",
+}
+
+var AnnotationsToOverwrite = map[string]string{
+	"overwrite-annotation": "true",
+	"merge-annotation":     "false",
+}
+
+var TaintsToOverwrite = []corev1.Taint{
+	{
+		Key:    "key1",
+		Value:  "value1",
+		Effect: corev1.TaintEffectPreferNoSchedule,
+	},
 }
 
 func generateSampleTypeMeta() *metav1.TypeMeta {
@@ -56,6 +97,32 @@ func generateSampleNodeLabelerSpec() *v1alpha1.NodeLabelerSpec {
 					MatchExpressions: *generateMatchExpressions(),
 				},
 			},
+		},
+		Merge:     *generateSampleMergeSpec(),
+		Overwrite: *generateSampleOverwriteSpec(),
+	}
+}
+
+func generateSampleOverwriteSpec() *v1alpha1.OverwriteSpec {
+	return &v1alpha1.OverwriteSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      LabelsToOverwrite,
+			Annotations: AnnotationsToOverwrite,
+		},
+		NodeSpec: corev1.NodeSpec{
+			Taints: TaintsToOverwrite,
+		},
+	}
+}
+
+func generateSampleMergeSpec() *v1alpha1.MergeSpec {
+	return &v1alpha1.MergeSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      LabelsToMerge,
+			Annotations: AnnotationsToMerge,
+		},
+		NodeSpec: corev1.NodeSpec{
+			Taints: TaintsToMerge,
 		},
 	}
 }
