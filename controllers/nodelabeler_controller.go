@@ -43,7 +43,7 @@ const (
 type NodeLabelerReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
-	Log logr.Logger
+	Log    logr.Logger
 }
 
 //+kubebuilder:rbac:groups=kubebuilder.kube.node.labeler.io,resources=nodelabelers,verbs=get;list;watch;create;update;patch;delete

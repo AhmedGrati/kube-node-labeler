@@ -80,6 +80,7 @@ func main() {
 	if err = (&controllers.NodeLabelerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		Log:    ctrl.Log.WithName("controllers").WithName("NodeLabeler"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NodeLabeler")
 		os.Exit(1)
