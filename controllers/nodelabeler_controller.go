@@ -18,12 +18,12 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"kube-node-labeler/api/v1alpha1"
 	kubebuilderv1alpha1 "kube-node-labeler/api/v1alpha1"
 	"kube-node-labeler/helpers"
 	"reflect"
 
+	"github.com/go-logr/logr"
 	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,6 +43,7 @@ const (
 type NodeLabelerReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	Log logr.Logger
 }
 
 //+kubebuilder:rbac:groups=kubebuilder.kube.node.labeler.io,resources=nodelabelers,verbs=get;list;watch;create;update;patch;delete
@@ -69,13 +70,13 @@ func (r *NodeLabelerReconciler) getAllNodes(ctx context.Context) corev1.NodeList
 func (r *NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l metav1.ObjectMeta, spec corev1.NodeSpec, strategyFunc func(*mergo.Config)) {
 	cop := node.DeepCopy()
 	if err := mergo.Merge(&cop.ObjectMeta, l, strategyFunc); err != nil {
-		_ = fmt.Errorf("ERROR: %s", err)
+		r.Log.Error(err, "Error while merging Two Object Metas")
 	}
 	if err := mergo.Merge(&cop.Spec, spec, strategyFunc); err != nil {
-		_ = fmt.Errorf("ERROR: %s", err)
+		r.Log.Error(err, "Error while merging Two Node Specs")
 	}
 	if reflect.DeepEqual(cop, node) {
-		fmt.Printf("Node unchanged")
+		r.Log.Info("Node Unchanged!")
 	}
 	r.Client.Update(context.Background(), cop, &client.UpdateOptions{})
 }
