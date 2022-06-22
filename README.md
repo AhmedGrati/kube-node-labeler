@@ -1,41 +1,61 @@
 # kube-node-labeler
-Kube Node Labeler is a Kubernetes operator which aims to automate the labeling of Kubernetes nodes for operators.
 
-## Description
-TODO: Add detailed description of the utility of this project and its features. 
+Kube Node Labeler is a Kubernetes operator which aims to automate the management of Kubernetes nodes for administrators in terms of attributes like Labels, Taint, and Annotations.
 
-## Features
-- [x] Node selection
-- [x] Adding attributes
-  - [x] Labels
-  - [x] Annotations
-  - [x] Taints
-- [ ] Removing attributes
-- [ ] Overwrite attributes
+To read more about Kubernetes operators you could read this amazing <a href="https://github.com/cncf/tag-app-delivery/blob/main/operator-wg/whitepaper/Operator-WhitePaper_v1-0.md">white paper</a> written by the CNCF(Cloud Native Computing Foundation).
 ## Note
+
 Project still under development.
 
-<!-- ## Getting Started
-You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
+## Use Case
+When a node is down you lose all the attached Attributes and NodeSpec, so it is frustrating for Kubernetes administrators to re-configure this node. You could generalize it for a 1xx-nodes cluster :').
+
+## Features
+
+- [x] Node Selection
+- [x] Adding Attributes
+- [x] Overwrite Attributes
+- [ ] Perform Actions on Specific Number of Nodes
+- [ ] Add Regex Pattern for Nodes Selection
+
+Attributes = Labels, Taints, Annotations
+
+## Getting Started
+You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) or [Minikube](https://minikube.sigs.k8s.io/docs/) to get a local cluster for testing, or run against a remote cluster.
 **Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
 ### Running on the cluster
-1. Install Instances of Custom Resources:
+1. Install Git and clone the repository
 
+```sh
+git clone https://github.com/AhmedGrati/kube-node-labeler
+```
+2- Install kubebuilder and use it to add CRD, controller or webhooks
+```sh
+kubebuilder create api --group kubebuilder --version v1alpha1 --kind NodeLabeler
+```
+```sh
+kubebuilder create webhook --group batch --version v1alpha1 --kind NodeLabeler --defaulting --programmatic-validation
+```
+3- Compile the repository
+```sh
+make generate
+```
+4- Install the CRDs on your cluster
+```sh
+make install
+```
+You should make sure that the CRDs are installed successfully by using this command
+```sh
+kubectl get crd
+```
+5- Start the controller. Before that, make sure that ports `8081` and `8090` are available.
+```sh
+make run
+```
+6- Add a new CRD object to the cluster.
 ```sh
 kubectl apply -f config/samples/
-```
-
-2. Build and push your image to the location specified by `IMG`:
-	
-```sh
-make docker-build docker-push IMG=<some-registry>/kube-node-labeler:tag
-```
-	
-3. Deploy the controller to the cluster with the image specified by `IMG`:
-
-```sh
-make deploy IMG=<some-registry>/kube-node-labeler:tag
 ```
 
 ### Uninstall CRDs
@@ -53,13 +73,12 @@ make undeploy
 ```
 
 ## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
 
 ### How it works
 This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
 
-It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/) 
-which provides a reconcile function responsible for synchronizing resources untile the desired state is reached on the cluster 
+It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/)
+which provides a reconcile function responsible for synchronizing resources untile the desired state is reached on the cluster
 
 ### Test It Out
 1. Install the CRDs into the cluster:
@@ -87,19 +106,5 @@ make manifests
 
 More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
 
-## License
-
-Copyright 2022.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License. -->
-
+## LICENSE
+The source code for the site is licensed under the Apache2 License, which you can find in the LICENSE file.

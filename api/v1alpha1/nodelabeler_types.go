@@ -28,9 +28,12 @@ import (
 type NodeLabelerSpec struct {
 	v1.NodeSelector `json:",inline"`
 
+	// // +optional
 	DryRun bool `json:"dryRun,omitempty"`
 
 	Merge MergeSpec `json:"merge,omitempty"`
+
+	Overwrite OverwriteSpec `json:"overwrite,omitempty"`
 }
 
 // NodeLabelerStatus defines the observed state of NodeLabeler
@@ -39,8 +42,14 @@ type NodeLabelerStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 }
 
+type OverwriteSpec struct {
+	metav1.ObjectMeta `json:",omitempty"`
+
+	v1.NodeSpec `json:",inline" protobuf:"bytes,2,opt,name=spec"`
+}
+
 type MergeSpec struct {
-	metav1.ObjectMeta `json:",inline" protobuf:"bytes,1,opt,name=metadata"`
+	metav1.ObjectMeta `json:",omitempty"`
 
 	v1.NodeSpec `json:",inline" protobuf:"bytes,2,opt,name=spec"`
 }
