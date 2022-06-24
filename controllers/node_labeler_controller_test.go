@@ -2,22 +2,37 @@ package controllers
 
 import (
 	"context"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"fmt"
+	"kube-node-labeler/api/v1alpha1"
+	"testing"
+
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var _ = Describe("NodeLabeler Controller Test", func() {
-	Context("Simple NodeLabeler", func() {
-		nodeLabelerObject := generateSampleNodeLabelerObject()
-		wrongNodeLabelerObject := generateWrongNodeLabelerObject()
-		It("Should create a node labeler object successfully", func() {
-			Expect(k8sClient.Create(context.Background(), nodeLabelerObject)).Should(Succeed())
-		})
-		It("Should delete a node labeler object successfully", func() {
-			Expect(k8sClient.Delete(context.Background(), nodeLabelerObject)).Should(Succeed())
-		})
-		It("Should fail creating a node labeler", func() {
-			Expect(k8sClient.Create(context.Background(), wrongNodeLabelerObject)).ShouldNot(Succeed())
-		})
-	})
-})
+func TestNodeLabelerController(t *testing.T) {
+	name := "custom-node-labeler"
+	nodelabeler := generateSampleNodeLabelerObject()
+	// objs := []client.Object{nodelabeler}
+	s := scheme.Scheme
+	s.AddKnownTypes(v1alpha1.SchemeBuilder.GroupVersion, nodelabeler)
+	cl := fake.NewClientBuilder().WithScheme(s).Build()
+	r := &NodeLabelerReconciler{Client: cl, Scheme: s}
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      name,
+			Namespace: "",
+		},
+	}
+	res, err := r.Reconcile(context.Background(), req)
+	if err != nil {
+		t.Fatalf("reconcile: (%v)", err)
+	}
+	fmt.Print(res)
+	// if !res.Requeue {
+	// 	t.Error("reconcile did not requeue request as expected")
+	// }
+}

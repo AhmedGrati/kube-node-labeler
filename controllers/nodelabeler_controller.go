@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"kube-node-labeler/api/v1alpha1"
-	kubebuilderv1alpha1 "kube-node-labeler/api/v1alpha1"
 	"kube-node-labeler/helpers"
 	"reflect"
 
@@ -67,31 +66,43 @@ func (r *NodeLabelerReconciler) getAllNodes(ctx context.Context) corev1.NodeList
 	return *nodes
 }
 
-func (r *NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l metav1.ObjectMeta, spec corev1.NodeSpec, strategyFunc func(*mergo.Config)) {
+func (r *NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l metav1.ObjectMeta, spec corev1.NodeSpec, strategyFunc func(*mergo.Config)) (*corev1.Node,error) {
 	cop := node.DeepCopy()
 	if err := mergo.Merge(&cop.ObjectMeta, l, strategyFunc); err != nil {
 		r.Log.Error(err, "Error while merging Two Object Metas")
+		return nil, err
 	}
 	if err := mergo.Merge(&cop.Spec, spec, strategyFunc); err != nil {
 		r.Log.Error(err, "Error while merging Two Node Specs")
+		return nil, err
 	}
 	if reflect.DeepEqual(cop, node) {
 		r.Log.Info("Node Unchanged!")
 	}
 	r.Client.Update(context.Background(), cop, &client.UpdateOptions{})
+	return cop, nil
 }
 
-func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec) {
+func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec) error{
 	for _, node := range nodes.Items {
-		r.AssignAttributesToNodes(&node, nodeLabelerSpec.Merge.ObjectMeta, nodeLabelerSpec.Merge.NodeSpec, mergo.WithAppendSlice)
-		r.AssignAttributesToNodes(&node, nodeLabelerSpec.Overwrite.ObjectMeta, nodeLabelerSpec.Overwrite.NodeSpec, mergo.WithOverride)
+		updatedNode, err := r.AssignAttributesToNodes(&node, nodeLabelerSpec.Merge.ObjectMeta, nodeLabelerSpec.Merge.NodeSpec, mergo.WithAppendSlice)
+		if err != nil {
+			r.Log.Error(err, "Error while merging attributes")
+			return err
+		}
+		_, err = r.AssignAttributesToNodes(updatedNode, nodeLabelerSpec.Overwrite.ObjectMeta, nodeLabelerSpec.Overwrite.NodeSpec, mergo.WithOverride)
+		if err != nil {
+			r.Log.Error(err, "Error while overrinding attributes")
+			return err
+		}
 	}
+	return nil
 
 }
 
 func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
-	nodeLabeler := &kubebuilderv1alpha1.NodeLabeler{}
+	nodeLabeler := &v1alpha1.NodeLabeler{}
 	r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, nodeLabeler)
 	allNodes := r.getAllNodes(ctx)
 	filteredNodes := corev1.NodeList{}
@@ -101,13 +112,16 @@ func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			filteredNodes.Items = append(filteredNodes.Items, node)
 		}
 	}
-	r.ManageNodes(&filteredNodes, nodeLabeler.Spec)
+	err := r.ManageNodes(&filteredNodes, nodeLabeler.Spec)
+	if err != nil {
+		r.Log.Error(err, "Error while managing nods")
+	}
 	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NodeLabelerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&kubebuilderv1alpha1.NodeLabeler{}).
+		For(&v1alpha1.NodeLabeler{}).
 		Complete(r)
 }
