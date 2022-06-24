@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"context"
-	"github.com/stretchr/testify/assert"
 	"kube-node-labeler/api/v1alpha1"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -15,10 +17,10 @@ import (
 func TestNodeLabelerController(t *testing.T) {
 	name := "custom-node-labeler"
 	nodelabeler := generateSampleNodeLabelerObject()
-	// objs := []client.Object{nodelabeler}
+	objs := []runtime.Object{nodelabeler}
 	s := scheme.Scheme
 	s.AddKnownTypes(v1alpha1.SchemeBuilder.GroupVersion, nodelabeler)
-	cl := fake.NewClientBuilder().WithScheme(s).Build()
+	cl := fake.NewClientBuilder().WithRuntimeObjects(objs...).WithScheme(s).Build()
 	r := &NodeLabelerReconciler{Client: cl, Scheme: s}
 
 	req := reconcile.Request{
