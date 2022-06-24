@@ -66,7 +66,7 @@ func (r *NodeLabelerReconciler) getAllNodes(ctx context.Context) corev1.NodeList
 	return *nodes
 }
 
-func (r *NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l metav1.ObjectMeta, spec corev1.NodeSpec, strategyFunc func(*mergo.Config)) (*corev1.Node,error) {
+func (r *NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l metav1.ObjectMeta, spec corev1.NodeSpec, strategyFunc func(*mergo.Config)) (*corev1.Node, error) {
 	cop := node.DeepCopy()
 	if err := mergo.Merge(&cop.ObjectMeta, l, strategyFunc); err != nil {
 		r.Log.Error(err, "Error while merging Two Object Metas")
@@ -83,7 +83,7 @@ func (r *NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l met
 	return cop, nil
 }
 
-func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec) error{
+func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec) error {
 	for _, node := range nodes.Items {
 		updatedNode, err := r.AssignAttributesToNodes(&node, nodeLabelerSpec.Merge.ObjectMeta, nodeLabelerSpec.Merge.NodeSpec, mergo.WithAppendSlice)
 		if err != nil {

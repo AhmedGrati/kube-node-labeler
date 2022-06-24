@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"github.com/stretchr/testify/assert"
 	"kube-node-labeler/api/v1alpha1"
 	"testing"
 
@@ -28,11 +28,6 @@ func TestNodeLabelerController(t *testing.T) {
 		},
 	}
 	res, err := r.Reconcile(context.Background(), req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-	fmt.Print(res)
-	// if !res.Requeue {
-	// 	t.Error("reconcile did not requeue request as expected")
-	// }
+	assert.NoError(t, err)
+	assert.False(t, res.Requeue, "We should not requeue")
 }
