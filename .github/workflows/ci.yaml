@@ -26,6 +26,7 @@ jobs:
     - name: Update Scripts Permissions
       run: |
         chmod +x ./hack/install/install-kubebuilder.sh
+        chmod +x ./hack/install/install-kustomize.sh
     - name: "install kubebuilder"
       run: ./hack/install/install-kubebuilder.sh
 
