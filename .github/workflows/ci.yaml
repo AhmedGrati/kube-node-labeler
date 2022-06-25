@@ -13,6 +13,8 @@ on:
 jobs:
   basic-checks:
     runs-on: ubuntu-20.04
+    env:
+      USER: kubenodelabeler
     steps:
     - name: Set up Go
       uses: actions/setup-go@v3
@@ -21,7 +23,9 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v3
-
+    - name: Update Scripts Permissions
+      run: |
+        chmod +x ./hack/install/
     - name: "install kubebuilder"
       run: ./hack/install/install-kubebuilder.sh
 
