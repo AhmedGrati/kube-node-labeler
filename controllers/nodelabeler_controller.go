@@ -73,37 +73,64 @@ func (r *NodeLabelerReconciler) getAllNodes(ctx context.Context) corev1.NodeList
 	return *nodes
 }
 
+func indexOf(el corev1.Taint, arr []corev1.Taint) int {
+	for k, x := range arr {
+		if x.Key == el.Key {
+			return k
+		}
+	}
+	return -1
+}
+
+func handleTaints(node *corev1.Node, taints []corev1.Taint, stratgy string) []corev1.Taint {
+	res := node.Spec.Taints
+	if stratgy == MergeStrategy {
+		res = append(res, taints...)
+	} else if stratgy == OverwriteStrategy {
+		for _, taint := range taints {
+			ind := indexOf(taint, res)
+			if ind == -1 {
+				res = append(res, taint)
+			} else {
+				res[ind].Value = taint.Value
+				res[ind].Effect = taint.Effect
+			}
+		}
+	}
+	return res
+}
+
 func (r *NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l metav1.ObjectMeta, spec corev1.NodeSpec, strategyFunc func(*mergo.Config)) (*corev1.Node, error) {
 	cop := node.DeepCopy()
 	if err := mergo.Merge(&cop.ObjectMeta, l, strategyFunc); err != nil {
 		r.Log.Error(err, "Error while merging Two Object Metas")
 		return nil, err
 	}
-	if err := mergo.Merge(&cop.Spec, spec, strategyFunc); err != nil {
-		r.Log.Error(err, "Error while merging Two Node Specs")
-		return nil, err
-	}
 	if reflect.DeepEqual(cop, node) {
 		r.Log.Info("Node Unchanged!")
 	}
-	r.Client.Update(context.Background(), cop, &client.UpdateOptions{})
 	return cop, nil
 }
 
-func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec) error {
+func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec) (*corev1.NodeList, error) {
+	result := &corev1.NodeList{}
 	for _, node := range nodes.Items {
 		updatedNode, err := r.AssignAttributesToNodes(&node, nodeLabelerSpec.Merge.ObjectMeta, nodeLabelerSpec.Merge.NodeSpec, mergo.WithAppendSlice)
 		if err != nil {
 			r.Log.Error(err, "Error while merging attributes")
-			return err
+			return nil, err
 		}
-		_, err = r.AssignAttributesToNodes(updatedNode, nodeLabelerSpec.Overwrite.ObjectMeta, nodeLabelerSpec.Overwrite.NodeSpec, mergo.WithOverride)
+		updatedNode.Spec.Taints = handleTaints(updatedNode, nodeLabelerSpec.Merge.Taints, MergeStrategy)
+		updatedNode, err = r.AssignAttributesToNodes(updatedNode, nodeLabelerSpec.Overwrite.ObjectMeta, nodeLabelerSpec.Overwrite.NodeSpec, mergo.WithOverride)
 		if err != nil {
 			r.Log.Error(err, "Error while overrinding attributes")
-			return err
+			return nil, err
 		}
+		updatedNode.Spec.Taints = handleTaints(updatedNode, nodeLabelerSpec.Overwrite.Taints, OverwriteStrategy)
+		r.Client.Update(context.Background(), updatedNode, &client.UpdateOptions{})
+		result.Items = append(result.Items, *updatedNode)
 	}
-	return nil
+	return result, nil
 
 }
 
@@ -119,7 +146,7 @@ func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			filteredNodes.Items = append(filteredNodes.Items, node)
 		}
 	}
-	err := r.ManageNodes(&filteredNodes, nodeLabeler.Spec)
+	_, err := r.ManageNodes(&filteredNodes, nodeLabeler.Spec)
 	if err != nil {
 		r.Log.Error(err, "Error while managing nods")
 	}

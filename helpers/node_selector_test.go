@@ -24,7 +24,7 @@ var (
 )
 
 func TestValidNodeSelectorRequirementsAsSelector(t *testing.T) {
-	// We test whether we obtain the same semantic when transforming from Node Selector Requirement to Labels Selectors 
+	// We test whether we obtain the same semantic when transforming from Node Selector Requirement to Labels Selectors
 	inOperators := []corev1.NodeSelectorOperator{
 		corev1.NodeSelectorOpIn,
 		corev1.NodeSelectorOpNotIn,
@@ -80,7 +80,7 @@ func TestValidNodeSelectorRequirementsAsSelector(t *testing.T) {
 
 func assertLabelsAndRequirementsEquality(t *testing.T, selector labels.Selector, nsm []corev1.NodeSelectorRequirement, err error, valuesExist bool) {
 	/* In order to make sure that the semantic is the same we should simply compare
-	 the labels' keys values and operators with node selector requirement ones
+	the labels' keys values and operators with node selector requirement ones
 	*/
 	assert.NoError(t, err)
 	requirements, _ := selector.Requirements()

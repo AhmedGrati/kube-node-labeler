@@ -1,32 +1,42 @@
 apiVersion: kubebuilder.kube.node.labeler.io/v1alpha1
 kind: NodeLabeler
 metadata:
-  name: nodelabeler-sample
+  annotations:
+    annotation1: value1
+  generation: 1
+  labels:
+    type: unit-test
+  name: simple-node-labeler
+  namespace: default
 spec:
+  merge:
+    annotations:
+      merge-annotation: "true"
+    labels:
+      merge-label: "true"
+      test-label: "true"
+    taints:
+    - effect: NoSchedule
+      key: key1
+      value: value1
+    - effect: NoExecute
+      key: key2
+      value: value2
   nodeSelectorTerms:
   - matchExpressions:
-    - key: kubernetes.io/hostname
+    - key: beta.kubernetes.io/arch
       operator: In
       values:
-      - minikube
-    - key: beta.kubernetes.io/os
-      operator: In
-      values:
-      - linux
-  - matchExpressions:
-    - key: another-node-label-key
-      operator: Exists
+      - amd64
+      - arch
   overwrite:
-    labels:
-      custom: "override-true"
-      test-add: "hey-override"
-  merge:
-    labels:
-      custom-label: "true"
-      test-add: "hey"
     annotations:
-      node-labeler-operator: works
+      merge-annotation: "false"
+      overwrite-annotation: "true"
+    labels:
+      merge-label: "false"
+      overwrite-label: "true"
     taints:
-    - key: dedicated
-      value: foo
-      effect: PreferNoSchedule
+    - effect: PreferNoSchedule
+      key: key1
+      value: value1

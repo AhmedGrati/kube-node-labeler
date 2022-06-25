@@ -2,10 +2,13 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"kube-node-labeler/api/v1alpha1"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -39,7 +42,85 @@ func TestNodeLabelerSuccessfullCreation(t *testing.T) {
 
 	assert.Equal(t, nl.Name, nodeLabeler.Name)
 	assert.NoError(t, err)
+}
 
+func getNode() *corev1.Node {
+	return &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node1",
+			Labels: map[string]string{
+				"os":                      "linux",
+				"number-of-years":         "2",
+				"ip-address":              "127.0.0.1",
+				"beta.kubernetes.io/arch": "arch",
+			},
+		},
+		Spec: corev1.NodeSpec{
+			Taints: []corev1.Taint{
+				{
+					Key:    "randomkey",
+					Value:  "randomvalue",
+					Effect: corev1.TaintEffectNoExecute,
+				},
+			},
+		},
+	}
+}
+
+func TestNodesManagement(t *testing.T) {
+	nodeLabeler := generateSampleNodeLabelerObject()
+	objs := []runtime.Object{nodeLabeler}
+	r, _ := getNodeLabelerReconciler(objs)
+	node := *getNode()
+	nodes := &corev1.NodeList{
+		Items: []corev1.Node{
+			node,
+		},
+	}
+	nodeLabelerSpec := generateSampleNodeLabelerSpec()
+	managedNodes, err := r.ManageNodes(nodes, *nodeLabelerSpec)
+	assert.NoError(t, err)
+	updatedNode := managedNodes.Items[0]
+	// verify that managed node contains the desired labels
+	assert.Equal(t, len(updatedNode.Labels), len(node.Labels)+3)
+	for k := range LabelsToMerge {
+		assert.Contains(t, updatedNode.Labels, k)
+	}
+	for k := range LabelsToOverwrite {
+		assert.Contains(t, updatedNode.Labels, k)
+	}
+	assert.Equal(t, updatedNode.Labels["merge-label"], "false")
+	assert.Equal(t, updatedNode.Labels["overwrite-label"], "true")
+	assert.Equal(t, updatedNode.Labels["test-label"], "true")
+
+	// verify that managed node contains the desired annotations
+	assert.Equal(t, len(updatedNode.Annotations), len(node.Annotations)+2)
+	for k := range AnnotationsToMerge {
+		assert.Contains(t, updatedNode.Annotations, k)
+	}
+	for k := range AnnotationsToOverwrite {
+		assert.Contains(t, updatedNode.Annotations, k)
+	}
+	assert.Equal(t, updatedNode.Annotations["merge-annotation"], "false")
+	assert.Equal(t, updatedNode.Annotations["overwrite-annotation"], "true")
+
+	// verify that managed node contains the desired taints
+	assert.Equal(t, len(updatedNode.Spec.Taints), len(node.Spec.Taints)+2)
+	fmt.Println(updatedNode.Spec.Taints)
+	desiredTaints := append(node.Spec.Taints, []corev1.Taint{
+		{
+			Key:    "key1",
+			Value:  "value1",
+			Effect: corev1.TaintEffectPreferNoSchedule,
+		},
+		{
+			Key:    "key2",
+			Value:  "value2",
+			Effect: corev1.TaintEffectNoExecute,
+		},
+	}...,
+	)
+	assert.Equal(t, updatedNode.Spec.Taints, desiredTaints)
 }
 
 func getNodeLabelerReconciler(objs []runtime.Object) (*NodeLabelerReconciler, client.Client) {
