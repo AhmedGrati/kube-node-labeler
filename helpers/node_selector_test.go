@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -25,6 +24,7 @@ var (
 )
 
 func TestValidNodeSelectorRequirementsAsSelector(t *testing.T) {
+	// We test whether we obtain the same semantic when transforming from Node Selector Requirement to Labels Selectors 
 	inOperators := []corev1.NodeSelectorOperator{
 		corev1.NodeSelectorOpIn,
 		corev1.NodeSelectorOpNotIn,
@@ -79,12 +79,13 @@ func TestValidNodeSelectorRequirementsAsSelector(t *testing.T) {
 }
 
 func assertLabelsAndRequirementsEquality(t *testing.T, selector labels.Selector, nsm []corev1.NodeSelectorRequirement, err error, valuesExist bool) {
+	/* In order to make sure that the semantic is the same we should simply compare
+	 the labels' keys values and operators with node selector requirement ones
+	*/
 	assert.NoError(t, err)
 	requirements, _ := selector.Requirements()
 	keysEquality := strings.EqualFold(requirements[0].Key(), nsm[0].Key)
 	operatorsEquality := strings.EqualFold(string(requirements[0].Operator()), string(nsm[0].Operator))
-	fmt.Println(string(requirements[0].Operator()))
-	fmt.Println(string(nsm[0].Operator))
 	if valuesExist == true {
 		valuesEquality := reflect.DeepEqual(requirements[0].Values().List(), nsm[0].Values)
 		assert.True(t, valuesEquality)
@@ -144,6 +145,7 @@ func TestNodesMatchingWithEmptyTerms(t *testing.T) {
 }
 
 func TestNodesMatchingWithValidTerms(t *testing.T) {
+	// case1: One requirement matches and the other is not
 	matchingRequirements := []corev1.NodeSelectorTerm{
 		{
 			MatchExpressions: []corev1.NodeSelectorRequirement{
@@ -167,6 +169,7 @@ func TestNodesMatchingWithValidTerms(t *testing.T) {
 	isMatch := NodeMatchesNodeSelectorTerms(Node, matchingRequirements)
 	assert.True(t, isMatch)
 
+	// case 2: Both requirement do not match even if in one of them there is an expression that matches
 	nonMatchingRequirements := []corev1.NodeSelectorTerm{
 		{
 			MatchExpressions: []corev1.NodeSelectorRequirement{
@@ -197,6 +200,50 @@ func TestNodesMatchingWithValidTerms(t *testing.T) {
 	assert.False(t, isMatch)
 }
 
-// func TestNodeListsMerging(t *testing.T) {
+func TestNodeListsMerging(t *testing.T) {
+	// case 1: init not empty, filtered empty
+	initNodes := corev1.NodeList{
+		Items: []corev1.Node{
+			*Node,
+		},
+	}
 
-// }
+	filteredNodes := corev1.NodeList{}
+
+	res := MergeNodes(initNodes, filteredNodes)
+	assert.Equal(t, len(res.Items), 1)
+
+	// case 2: init not empty, filtered not empty but the same node as init
+	filteredNodes = corev1.NodeList{
+		Items: []corev1.Node{
+			*Node,
+		},
+	}
+
+	res = MergeNodes(initNodes, filteredNodes)
+	assert.Equal(t, len(res.Items), 1)
+
+	// case 3: init not empty, filtered not empty
+	filteredNodes = corev1.NodeList{
+		Items: []corev1.Node{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "second-node",
+				},
+			},
+		},
+	}
+
+	res = MergeNodes(initNodes, filteredNodes)
+	assert.Equal(t, len(res.Items), 2)
+
+	// case 4: init empty, filtered not empty
+	initNodes = corev1.NodeList{}
+	res = MergeNodes(initNodes, filteredNodes)
+	assert.Equal(t, len(res.Items), 1)
+
+	// case 5: both empty
+	filteredNodes = corev1.NodeList{}
+	res = MergeNodes(initNodes, filteredNodes)
+	assert.Equal(t, len(res.Items), 0)
+}
