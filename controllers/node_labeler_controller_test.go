@@ -7,13 +7,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	k8sconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -129,4 +132,22 @@ func getNodeLabelerReconciler(objs []runtime.Object) (*NodeLabelerReconciler, cl
 	cl := fake.NewClientBuilder().WithScheme(s).WithRuntimeObjects(objs...).Build()
 	r := New(cl, s)
 	return r, cl
+}
+
+func TestRegisterWithManager(t *testing.T) {
+	t.Skip("this test requires a real cluster, otherwise the GetConfigOrDie will die")
+
+	// prepare
+	mgr, err := manager.New(k8sconfig.GetConfigOrDie(), manager.Options{})
+	require.NoError(t, err)
+	nodeLabeler := generateSampleNodeLabelerObject()
+	objs := []runtime.Object{nodeLabeler}
+
+	r, _ := getNodeLabelerReconciler(objs)
+
+	// test
+	err = r.SetupWithManager(mgr)
+
+	// verify
+	assert.NoError(t, err)
 }
