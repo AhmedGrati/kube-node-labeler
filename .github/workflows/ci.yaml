@@ -13,8 +13,6 @@ on:
 jobs:
   basic-checks:
     runs-on: ubuntu-20.04
-    env:
-      USER: kubenodelabeler
     steps:
     - name: Set up Go
       uses: actions/setup-go@v3
