@@ -1,0 +1,34 @@
+name: "CI Workflow"
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  basic-checks:
+    runs-on: ubuntu-20.04
+    env:
+      USER: kubenodelabeler
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.17
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v3
+
+    - name: "install kubebuilder"
+      run: ./hack/install/install-kubebuilder.sh
+
+    - name: "install kustomize"
+      run: ./hack/install/install-kustomize.sh
+
+    - name: "run unit tests"
+      run: make tests
