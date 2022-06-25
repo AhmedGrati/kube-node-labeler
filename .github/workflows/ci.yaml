@@ -25,7 +25,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Update Scripts Permissions
       run: |
-        chmod +x ./hack/install/
+        chmod +x ./hack/install/install-kubebuilder.sh
     - name: "install kubebuilder"
       run: ./hack/install/install-kubebuilder.sh
 
