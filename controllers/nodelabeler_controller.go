@@ -45,6 +45,13 @@ type NodeLabelerReconciler struct {
 	Log    logr.Logger
 }
 
+func New(client client.Client, scheme *runtime.Scheme) *NodeLabelerReconciler {
+	return &NodeLabelerReconciler{
+		Client: client,
+		Scheme: scheme,
+	}
+}
+
 //+kubebuilder:rbac:groups=kubebuilder.kube.node.labeler.io,resources=nodelabelers,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=kubebuilder.kube.node.labeler.io,resources=nodelabelers/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=kubebuilder.kube.node.labeler.io,resources=nodelabelers/finalizers,verbs=update
