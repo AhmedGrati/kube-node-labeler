@@ -34,4 +34,4 @@ jobs:
       run: ./hack/install/install-kustomize.sh
 
     - name: "run unit tests"
-      run: make tests
+      run: make test
