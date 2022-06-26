@@ -97,6 +97,10 @@ spec:
                   unschedulable:
                     type: boolean
                 type: object
+              nodeNamePatterns:
+                items:
+                  type: string
+                type: array
               nodeSelectorTerms:
                 items:
                   properties:

@@ -105,6 +105,11 @@ func (in *NodeLabelerList) DeepCopyObject() runtime.Object {
 func (in *NodeLabelerSpec) DeepCopyInto(out *NodeLabelerSpec) {
 	*out = *in
 	in.NodeSelector.DeepCopyInto(&out.NodeSelector)
+	if in.NodeNamePatterns != nil {
+		in, out := &in.NodeNamePatterns, &out.NodeNamePatterns
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	in.Merge.DeepCopyInto(&out.Merge)
 	in.Overwrite.DeepCopyInto(&out.Overwrite)
 }

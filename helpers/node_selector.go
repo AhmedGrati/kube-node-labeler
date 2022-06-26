@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"regexp"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -19,6 +20,25 @@ func NodeMatchesNodeSelectorTerms(node *corev1.Node, nodeSelectorTerms []corev1.
 		}
 	}
 	return false
+}
+
+func isNodeMatchRegex(node corev1.Node, regexes []string) bool {
+	for _, regex := range regexes {
+		if match, _ := regexp.MatchString(regex, node.Name); match {
+			return true
+		}
+	}
+	return false
+}
+
+func FilterByRegex(nodes *corev1.NodeList, regexes []string) *corev1.NodeList {
+	filteredNodes := &corev1.NodeList{}
+	for _, node := range nodes.Items {
+		if isNodeMatchRegex(node, regexes) {
+			filteredNodes.Items = append(filteredNodes.Items, node)
+		}
+	}
+	return filteredNodes
 }
 
 // NodeSelectorRequirementsAsSelector converts the []NodeSelectorRequirement api type into a struct that implements

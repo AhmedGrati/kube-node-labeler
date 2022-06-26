@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -246,4 +247,59 @@ func TestNodeListsMerging(t *testing.T) {
 	filteredNodes = corev1.NodeList{}
 	res = MergeNodes(initNodes, filteredNodes)
 	assert.Equal(t, len(res.Items), 0)
+}
+
+func generateNodeListForRegexTest() *corev1.NodeList {
+	return &corev1.NodeList{
+		Items: []corev1.Node{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "minikube1",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "2minikube2",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "3minikube3",
+				},
+			},
+		},
+	}
+}
+
+func TestFilterNodesByRegex(t *testing.T) {
+	nodes := *generateNodeListForRegexTest()
+
+	filteredNodes := FilterByRegex(&nodes,
+		[]string{"[a-zA-Z0-9]*minikube[a-zA-Z0-9]*"},
+	)
+	fmt.Print(filteredNodes.Items)
+	expectedResult := &corev1.NodeList{
+		Items: []corev1.Node{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "minikube1",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "2minikube2",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "3minikube3",
+				},
+			},
+		},
+	}
+
+	assert.Equal(t, len(filteredNodes.Items), len(expectedResult.Items))
+	assert.Equal(t, filteredNodes.Items[0].Name, expectedResult.Items[0].Name)
+	assert.Equal(t, filteredNodes.Items[1].Name, expectedResult.Items[1].Name)
+	assert.Equal(t, filteredNodes.Items[2].Name, expectedResult.Items[2].Name)
 }

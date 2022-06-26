@@ -31,6 +31,9 @@ type NodeLabelerSpec struct {
 	// // +optional
 	DryRun bool `json:"dryRun,omitempty"`
 
+	// // +optional
+	NodeNamePatterns []string `json:"nodeNamePatterns,omitempty" protobuf:"bytes,3,rep,name=nodeNamePatterns"`
+
 	Merge MergeSpec `json:"merge,omitempty"`
 
 	Overwrite OverwriteSpec `json:"overwrite,omitempty"`
