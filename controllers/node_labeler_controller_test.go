@@ -67,7 +67,7 @@ func TestNodesManagement(t *testing.T) {
 	assert.Equal(t, len(updatedNode.Labels), len(node.Labels)+3)
 
 	// verify that it will select only one node
-	nodeLabeler.Spec.Size = 1
+	*nodeLabeler.Spec.Size = 1
 	managedNodes, err = r.ManageNodes(nodes, nodeLabeler.Spec, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, len(managedNodes.Items), 1)

@@ -85,6 +85,10 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "NodeLabeler")
 		os.Exit(1)
 	}
+	if err = (&kubebuilderv1alpha1.NodeLabeler{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "NodeLabeler")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

@@ -31,7 +31,7 @@ type NodeLabelerSpec struct {
 	// // +optional
 	DryRun bool `json:"dryRun,omitempty"`
 	// // +optional
-	Size int32 `json:"size,omitempty" protobuf:"bytes,2,rep,name=size"`
+	Size *int32 `json:"size,omitempty"`
 
 	// // +optional
 	NodeNamePatterns []string `json:"nodeNamePatterns,omitempty" protobuf:"bytes,3,rep,name=nodeNamePatterns"`
