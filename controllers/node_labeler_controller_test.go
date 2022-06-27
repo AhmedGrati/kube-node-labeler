@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -47,45 +46,35 @@ func TestNodeLabelerSuccessfullCreation(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func getNode() *corev1.Node {
-	return &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "node1",
-			Labels: map[string]string{
-				"os":                      "linux",
-				"number-of-years":         "2",
-				"ip-address":              "127.0.0.1",
-				"beta.kubernetes.io/arch": "arch",
-			},
-		},
-		Spec: corev1.NodeSpec{
-			Taints: []corev1.Taint{
-				{
-					Key:    "randomkey",
-					Value:  "randomvalue",
-					Effect: corev1.TaintEffectNoExecute,
-				},
-			},
-		},
-	}
-}
-
 func TestNodesManagement(t *testing.T) {
 	nodeLabeler := generateSampleNodeLabelerObject()
 	objs := []runtime.Object{nodeLabeler}
 	r, _ := getNodeLabelerReconciler(objs)
 	node := *getNode()
+	node2 := *getNode()
+	node2.Name = "node2"
 	nodes := &corev1.NodeList{
 		Items: []corev1.Node{
 			node,
+			node2,
 		},
 	}
-	nodeLabelerSpec := generateSampleNodeLabelerSpec()
-	managedNodes, err := r.ManageNodes(nodes, *nodeLabelerSpec)
+	managedNodes, err := r.ManageNodes(nodes, nodeLabeler.Spec, len(nodes.Items))
 	assert.NoError(t, err)
+	assert.Equal(t, len(managedNodes.Items), 2)
 	updatedNode := managedNodes.Items[0]
 	// verify that managed node contains the desired labels
 	assert.Equal(t, len(updatedNode.Labels), len(node.Labels)+3)
+
+	// verify that it will select only one node
+	nodeLabeler.Spec.Size = 1
+	managedNodes, err = r.ManageNodes(nodes, nodeLabeler.Spec, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, len(managedNodes.Items), 1)
+	updatedNode = managedNodes.Items[0]
+	// verify that managed node contains the desired labels
+	assert.Equal(t, len(updatedNode.Labels), len(node.Labels)+3)
+
 	for k := range LabelsToMerge {
 		assert.Contains(t, updatedNode.Labels, k)
 	}
@@ -150,4 +139,22 @@ func TestRegisterWithManager(t *testing.T) {
 
 	// verify
 	assert.NoError(t, err)
+}
+
+func TestGetSizeOfNodesToManage(t *testing.T) {
+	nodeLabelerSize := 0
+	filteredNodesSize := 2
+
+	size := getSizeOfNodesToManage(nodeLabelerSize, filteredNodesSize)
+	assert.Equal(t, size, filteredNodesSize)
+
+	nodeLabelerSize = 1
+
+	size = getSizeOfNodesToManage(nodeLabelerSize, filteredNodesSize)
+	assert.Equal(t, size, nodeLabelerSize)
+
+	nodeLabelerSize = 3
+	size = getSizeOfNodesToManage(nodeLabelerSize, filteredNodesSize)
+	assert.Equal(t, size, filteredNodesSize)
+
 }
