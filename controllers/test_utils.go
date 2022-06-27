@@ -135,17 +135,40 @@ func generateSampleNodeLabelerObject() *v1alpha1.NodeLabeler {
 	}
 }
 
-func generateWrongNodeLabelerObjectMeta() *metav1.ObjectMeta {
-	return &metav1.ObjectMeta{
-		Name:      NodeLabelerName,
-		Namespace: "custom-namespace",
-	}
-}
+// func generateWrongNodeLabelerObjectMeta() *metav1.ObjectMeta {
+// 	return &metav1.ObjectMeta{
+// 		Name:      NodeLabelerName,
+// 		Namespace: "custom-namespace",
+// 	}
+// }
 
-func generateWrongNodeLabelerObject() *v1alpha1.NodeLabeler {
-	return &v1alpha1.NodeLabeler{
-		TypeMeta:   *generateSampleTypeMeta(),
-		ObjectMeta: *generateWrongNodeLabelerObjectMeta(),
-		Spec:       *generateSampleNodeLabelerSpec(),
+// func generateWrongNodeLabelerObject() *v1alpha1.NodeLabeler {
+// 	return &v1alpha1.NodeLabeler{
+// 		TypeMeta:   *generateSampleTypeMeta(),
+// 		ObjectMeta: *generateWrongNodeLabelerObjectMeta(),
+// 		Spec:       *generateSampleNodeLabelerSpec(),
+// 	}
+// }
+
+func getNode() *corev1.Node {
+	return &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node1",
+			Labels: map[string]string{
+				"os":                      "linux",
+				"number-of-years":         "2",
+				"ip-address":              "127.0.0.1",
+				"beta.kubernetes.io/arch": "arch",
+			},
+		},
+		Spec: corev1.NodeSpec{
+			Taints: []corev1.Taint{
+				{
+					Key:    "randomkey",
+					Value:  "randomvalue",
+					Effect: corev1.TaintEffectNoExecute,
+				},
+			},
+		},
 	}
 }

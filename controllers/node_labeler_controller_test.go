@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -45,29 +44,6 @@ func TestNodeLabelerSuccessfullCreation(t *testing.T) {
 
 	assert.Equal(t, nl.Name, nodeLabeler.Name)
 	assert.NoError(t, err)
-}
-
-func getNode() *corev1.Node {
-	return &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "node1",
-			Labels: map[string]string{
-				"os":                      "linux",
-				"number-of-years":         "2",
-				"ip-address":              "127.0.0.1",
-				"beta.kubernetes.io/arch": "arch",
-			},
-		},
-		Spec: corev1.NodeSpec{
-			Taints: []corev1.Taint{
-				{
-					Key:    "randomkey",
-					Value:  "randomvalue",
-					Effect: corev1.TaintEffectNoExecute,
-				},
-			},
-		},
-	}
 }
 
 func TestNodesManagement(t *testing.T) {
