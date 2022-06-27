@@ -20,6 +20,7 @@ import (
 	"context"
 	"kube-node-labeler/api/v1alpha1"
 	"kube-node-labeler/helpers"
+	"math"
 	"reflect"
 
 	"github.com/go-logr/logr"
@@ -112,9 +113,10 @@ func (r *NodeLabelerReconciler) AssignAttributesToNodes(node *corev1.Node, l met
 	return cop, nil
 }
 
-func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec) (*corev1.NodeList, error) {
+func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerSpec v1alpha1.NodeLabelerSpec, size int) (*corev1.NodeList, error) {
 	result := &corev1.NodeList{}
-	for _, node := range nodes.Items {
+	for i := 0; i < size; i++ {
+		node := nodes.Items[i]
 		updatedNode, err := r.AssignAttributesToNodes(&node, nodeLabelerSpec.Merge.ObjectMeta, nodeLabelerSpec.Merge.NodeSpec, mergo.WithAppendSlice)
 		if err != nil {
 			r.Log.Error(err, "Error while merging attributes")
@@ -149,7 +151,11 @@ func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if len(nodeLabeler.Spec.NodeNamePatterns) > 0 {
 		filteredNodes = *helpers.FilterByRegex(&filteredNodes, nodeLabeler.Spec.NodeNamePatterns)
 	}
-	_, err := r.ManageNodes(&filteredNodes, nodeLabeler.Spec)
+	size := len(filteredNodes.Items)
+	if nodeLabeler.Spec.Size != 0 {
+		size = int(math.Min(float64(nodeLabeler.Spec.Size), float64(size)))
+	}
+	_, err := r.ManageNodes(&filteredNodes, nodeLabeler.Spec, size)
 	if err != nil {
 		r.Log.Error(err, "Error while managing nods")
 	}

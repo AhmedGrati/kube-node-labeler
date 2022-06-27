@@ -81,7 +81,7 @@ func TestNodesManagement(t *testing.T) {
 		},
 	}
 	nodeLabelerSpec := generateSampleNodeLabelerSpec()
-	managedNodes, err := r.ManageNodes(nodes, *nodeLabelerSpec)
+	managedNodes, err := r.ManageNodes(nodes, *nodeLabelerSpec, len(nodes.Items))
 	assert.NoError(t, err)
 	updatedNode := managedNodes.Items[0]
 	// verify that managed node contains the desired labels
