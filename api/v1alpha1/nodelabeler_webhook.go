@@ -20,7 +20,7 @@ import (
 	"regexp"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
+	// "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	validationutils "k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -48,7 +48,7 @@ var _ webhook.Defaulter = &NodeLabeler{}
 func (r *NodeLabeler) Default() {
 	nodelabelerlog.Info("default", "name", r.Name)
 	if r.Spec.Size == nil {
-		r.Spec.Size = new(int32)
+		r.Spec.Size = new(int)
 		*r.Spec.Size = 0
 	}
 }
@@ -56,7 +56,7 @@ func (r *NodeLabeler) Default() {
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 //+kubebuilder:webhook:path=/validate-kubebuilder-kube-node-labeler-io-v1alpha1-nodelabeler,mutating=false,failurePolicy=fail,sideEffects=None,groups=kubebuilder.kube.node.labeler.io,resources=nodelabelers,verbs=create;update,versions=v1alpha1,name=vnodelabeler.kb.io,admissionReviewVersions=v1
 
-var _ webhook.Validator = &NodeLabeler{}
+// var _ webhook.Validator = &NodeLabeler{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *NodeLabeler) ValidateCreate() error {
@@ -106,18 +106,18 @@ func (r *NodeLabeler) validateNodeLabelerName() *field.Error {
 	return nil
 }
 
-// ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *NodeLabeler) ValidateUpdate(old runtime.Object) error {
-	nodelabelerlog.Info("validate update", "name", r.Name)
+// // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
+// func (r *NodeLabeler) ValidateUpdate(old runtime.Object) error {
+// 	nodelabelerlog.Info("validate update", "name", r.Name)
 
-	// TODO(user): fill in your validation logic upon object update.
-	return nil
-}
+// 	// TODO(user): fill in your validation logic upon object update.
+// 	return nil
+// }
 
-// ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *NodeLabeler) ValidateDelete() error {
-	nodelabelerlog.Info("validate delete", "name", r.Name)
+// // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
+// func (r *NodeLabeler) ValidateDelete() error {
+// 	nodelabelerlog.Info("validate delete", "name", r.Name)
 
-	// TODO(user): fill in your validation logic upon object deletion.
-	return nil
-}
+// 	// TODO(user): fill in your validation logic upon object deletion.
+// 	return nil
+// }

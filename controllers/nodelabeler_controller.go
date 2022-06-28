@@ -159,7 +159,7 @@ func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if len(nodeLabeler.Spec.NodeNamePatterns) > 0 {
 		filteredNodes = *helpers.FilterByRegex(&filteredNodes, nodeLabeler.Spec.NodeNamePatterns)
 	}
-	_, err := r.ManageNodes(&filteredNodes, nodeLabeler.Spec, getSizeOfNodesToManage(int(*nodeLabeler.Spec.Size), len(filteredNodes.Items)))
+	_, err := r.ManageNodes(&filteredNodes, nodeLabeler.Spec, getSizeOfNodesToManage(*nodeLabeler.Spec.Size, len(filteredNodes.Items)))
 	if err != nil {
 		r.Log.Error(err, "Error while managing nods")
 	}

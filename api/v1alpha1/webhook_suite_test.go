@@ -17,119 +17,157 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"context"
-	"crypto/tls"
-	"fmt"
-	"net"
-	"path/filepath"
+	"math/rand"
 	"testing"
-	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	admissionv1beta1 "k8s.io/api/admission/v1beta1"
-	//+kubebuilder:scaffold:imports
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/rest"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	validationutils "k8s.io/apimachinery/pkg/util/validation"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
-var cfg *rest.Config
-var k8sClient client.Client
-var testEnv *envtest.Environment
-var ctx context.Context
-var cancel context.CancelFunc
+// func TestAPIs(t *testing.T) {
+// 	RegisterFailHandler(Fail)
 
-func TestAPIs(t *testing.T) {
-	RegisterFailHandler(Fail)
+// 	RunSpecsWithDefaultAndCustomReporters(t,
+// 		"Webhook Suite",
+// 		[]Reporter{printer.NewlineReporter{}})
+// }
 
-	RunSpecsWithDefaultAndCustomReporters(t,
-		"Webhook Suite",
-		[]Reporter{printer.NewlineReporter{}})
-}
+// var _ = BeforeSuite(func() {
+// 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
-var _ = BeforeSuite(func() {
-	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
+// 	ctx, cancel = context.WithCancel(context.TODO())
 
-	ctx, cancel = context.WithCancel(context.TODO())
+// 	By("bootstrapping test environment")
+// 	testEnv = &envtest.Environment{
+// 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
+// 		ErrorIfCRDPathMissing: false,
+// 		WebhookInstallOptions: envtest.WebhookInstallOptions{
+// 			Paths: []string{filepath.Join("..", "..", "config", "webhook")},
+// 		},
+// 	}
 
-	By("bootstrapping test environment")
-	testEnv = &envtest.Environment{
-		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
-		ErrorIfCRDPathMissing: false,
-		WebhookInstallOptions: envtest.WebhookInstallOptions{
-			Paths: []string{filepath.Join("..", "..", "config", "webhook")},
+// 	var err error
+// 	// cfg is defined in this file globally.
+// 	cfg, err = testEnv.Start()
+// 	Expect(err).NotTo(HaveOccurred())
+// 	Expect(cfg).NotTo(BeNil())
+
+// 	scheme := runtime.NewScheme()
+// 	err = AddToScheme(scheme)
+// 	Expect(err).NotTo(HaveOccurred())
+
+// 	err = admissionv1beta1.AddToScheme(scheme)
+// 	Expect(err).NotTo(HaveOccurred())
+
+// 	//+kubebuilder:scaffold:scheme
+
+// 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
+// 	Expect(err).NotTo(HaveOccurred())
+// 	Expect(k8sClient).NotTo(BeNil())
+
+// 	// start webhook server using Manager
+// 	webhookInstallOptions := &testEnv.WebhookInstallOptions
+// 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
+// 		Scheme:             scheme,
+// 		Host:               webhookInstallOptions.LocalServingHost,
+// 		Port:               webhookInstallOptions.LocalServingPort,
+// 		CertDir:            webhookInstallOptions.LocalServingCertDir,
+// 		LeaderElection:     false,
+// 		MetricsBindAddress: "0",
+// 	})
+// 	Expect(err).NotTo(HaveOccurred())
+
+// 	err = (&NodeLabeler{}).SetupWebhookWithManager(mgr)
+// 	Expect(err).NotTo(HaveOccurred())
+
+// 	//+kubebuilder:scaffold:webhook
+
+// 	go func() {
+// 		defer GinkgoRecover()
+// 		err = mgr.Start(ctx)
+// 		Expect(err).NotTo(HaveOccurred())
+// 	}()
+
+// 	// wait for the webhook server to get ready
+// 	dialer := &net.Dialer{Timeout: time.Second}
+// 	addrPort := fmt.Sprintf("%s:%d", webhookInstallOptions.LocalServingHost, webhookInstallOptions.LocalServingPort)
+// 	Eventually(func() error {
+// 		conn, err := tls.DialWithDialer(dialer, "tcp", addrPort, &tls.Config{InsecureSkipVerify: true})
+// 		if err != nil {
+// 			return err
+// 		}
+// 		conn.Close()
+// 		return nil
+// 	}).Should(Succeed())
+
+// }, 60)
+
+// var _ = AfterSuite(func() {
+// 	cancel()
+// 	By("tearing down the test environment")
+// 	err := testEnv.Stop()
+// 	Expect(err).NotTo(HaveOccurred())
+// })
+
+func getNodeLabelerWithoutSize() *NodeLabeler {
+	return &NodeLabeler{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node-labeler",
 		},
 	}
+}
 
-	var err error
-	// cfg is defined in this file globally.
-	cfg, err = testEnv.Start()
-	Expect(err).NotTo(HaveOccurred())
-	Expect(cfg).NotTo(BeNil())
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-	scheme := runtime.NewScheme()
-	err = AddToScheme(scheme)
-	Expect(err).NotTo(HaveOccurred())
+func randStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
 
-	err = admissionv1beta1.AddToScheme(scheme)
-	Expect(err).NotTo(HaveOccurred())
+func getNodeLabelerWithInvalidName() *NodeLabeler {
+	return &NodeLabeler{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: randStringBytes(validationutils.DNS1035LabelMaxLength - 10),
+		},
+	}
+}
 
-	//+kubebuilder:scaffold:scheme
+func TestDefaultingWebhook(t *testing.T) {
+	r := getNodeLabelerWithoutSize()
+	r.Default()
+	assert.Equal(t, *r.Spec.Size, int(0))
+	assert.NotEqual(t, r.Spec.Size, nil)
+	*r.Spec.Size = 2
+	r.Default()
+	assert.Equal(t, *r.Spec.Size, int(2))
+}
 
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
-	Expect(err).NotTo(HaveOccurred())
-	Expect(k8sClient).NotTo(BeNil())
+/*
+After Triggering error in each field we correct the error before moving to test the next field
+*/
+func TestCreateValidationWebhook(t *testing.T) {
+	nodeLabeler := getNodeLabelerWithInvalidName()
+	err := nodeLabeler.validateNodeLabelerName()
+	assert.Equal(t, err.Field, "metadata.name")
 
-	// start webhook server using Manager
-	webhookInstallOptions := &testEnv.WebhookInstallOptions
-	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme:             scheme,
-		Host:               webhookInstallOptions.LocalServingHost,
-		Port:               webhookInstallOptions.LocalServingPort,
-		CertDir:            webhookInstallOptions.LocalServingCertDir,
-		LeaderElection:     false,
-		MetricsBindAddress: "0",
-	})
-	Expect(err).NotTo(HaveOccurred())
+	nodeLabeler.ObjectMeta.Name = randStringBytes(10)
+	nodeLabeler.Default()
 
-	err = (&NodeLabeler{}).SetupWebhookWithManager(mgr)
-	Expect(err).NotTo(HaveOccurred())
+	// Invalid Size
+	*nodeLabeler.Spec.Size = -22
+	err = nodeLabeler.validateNodeLabelerSpec()
+	assert.Equal(t, err.Field, "spec.size")
 
-	//+kubebuilder:scaffold:webhook
-
-	go func() {
-		defer GinkgoRecover()
-		err = mgr.Start(ctx)
-		Expect(err).NotTo(HaveOccurred())
-	}()
-
-	// wait for the webhook server to get ready
-	dialer := &net.Dialer{Timeout: time.Second}
-	addrPort := fmt.Sprintf("%s:%d", webhookInstallOptions.LocalServingHost, webhookInstallOptions.LocalServingPort)
-	Eventually(func() error {
-		conn, err := tls.DialWithDialer(dialer, "tcp", addrPort, &tls.Config{InsecureSkipVerify: true})
-		if err != nil {
-			return err
-		}
-		conn.Close()
-		return nil
-	}).Should(Succeed())
-
-}, 60)
-
-var _ = AfterSuite(func() {
-	cancel()
-	By("tearing down the test environment")
-	err := testEnv.Stop()
-	Expect(err).NotTo(HaveOccurred())
-})
+	*nodeLabeler.Spec.Size = 3
+	// Invalid Regex
+	nodeLabeler.Spec.NodeNamePatterns = []string{`^\/(?!\/)(.*?)`}
+	err = nodeLabeler.validateNodeLabelerSpec()
+	assert.Equal(t, err.Field, "spec.nodeNamePatterns")
+}

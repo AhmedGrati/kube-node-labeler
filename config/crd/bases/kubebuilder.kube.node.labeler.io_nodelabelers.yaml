@@ -207,7 +207,6 @@ spec:
                     type: boolean
                 type: object
               size:
-                format: int32
                 type: integer
             required:
             - nodeSelectorTerms

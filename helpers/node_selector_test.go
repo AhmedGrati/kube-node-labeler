@@ -108,8 +108,6 @@ func TestEmptyNodeSelectorRequirementsAsSelector(t *testing.T) {
 	assert.Equal(t, res, labels.Nothing())
 }
 
-
-
 func TestNodesMatchingWithInvalidSelector(t *testing.T) {
 	invalidNodeSelectorTerms := []corev1.NodeSelectorTerm{
 		{
@@ -228,8 +226,6 @@ func TestNodeListsMerging(t *testing.T) {
 	res = MergeNodes(initNodes, filteredNodes)
 	assert.Equal(t, len(res.Items), 0)
 }
-
-
 
 func TestFilterNodesByRegex(t *testing.T) {
 	nodes := *generateNodeListForRegexTest()
