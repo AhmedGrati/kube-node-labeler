@@ -147,16 +147,16 @@ func TestGetSizeOfNodesToManage(t *testing.T) {
 	nodeLabelerSize := int(0)
 	filteredNodesSize := 2
 
-	size := getSizeOfNodesToManage(nodeLabelerSize, filteredNodesSize)
+	size := getSizeOfNodesToManage(&nodeLabelerSize, filteredNodesSize)
 	assert.Equal(t, size, filteredNodesSize)
 
 	nodeLabelerSize = 1
 
-	size = getSizeOfNodesToManage(nodeLabelerSize, filteredNodesSize)
+	size = getSizeOfNodesToManage(&nodeLabelerSize, filteredNodesSize)
 	assert.Equal(t, size, nodeLabelerSize)
 
 	nodeLabelerSize = 3
-	size = getSizeOfNodesToManage(nodeLabelerSize, filteredNodesSize)
+	size = getSizeOfNodesToManage(&nodeLabelerSize, filteredNodesSize)
 	assert.Equal(t, size, filteredNodesSize)
 
 }

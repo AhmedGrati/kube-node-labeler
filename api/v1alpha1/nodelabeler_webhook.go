@@ -38,8 +38,6 @@ func (r *NodeLabeler) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// TODO(user): EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-
 //+kubebuilder:webhook:path=/mutate-kubebuilder-kube-node-labeler-io-v1alpha1-nodelabeler,mutating=true,failurePolicy=fail,sideEffects=None,groups=kubebuilder.kube.node.labeler.io,resources=nodelabelers,verbs=create;update,versions=v1alpha1,name=mnodelabeler.kb.io,admissionReviewVersions=v1
 
 var _ webhook.Defaulter = &NodeLabeler{}
