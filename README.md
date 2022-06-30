@@ -262,10 +262,10 @@ You should make sure that the CRDs are installed successfully by using this comm
 kubectl get crd
 ```
 
-5- Start the controller. Before that, make sure that ports `8081` and `8090` are available.
+5- Start the controller (without webhook server to make iterations over build and test easier). Before that, make sure that ports `8081` and `8090` are available.
 
 ```sh
-make run
+make run ENABLE_WEBHOOKS=false
 ```
 
 6- Add a new CRD object to the cluster.
