@@ -9,19 +9,19 @@ metadata:
   name: simple-node-labeler
   namespace: default
 spec:
-  merge:
-    annotations:
-      merge-annotation: "true"
-    labels:
-      merge-label: "true"
-      test-label: "true"
-    taints:
-    - effect: NoSchedule
-      key: key1
-      value: value1
-    - effect: NoExecute
-      key: key2
-      value: value2
+  # merge:
+  #   annotations:
+  #     merge-annotation: "false"
+  #   labels:
+  #     merge-label: "false"
+  #     test-label: "false"
+  #   taints:
+  #   - effect: NoExecute
+  #     key: key1
+  #     value: value1
+  #   - effect: NoSchedule
+  #     key: key2
+  #     value: value2
   nodeSelectorTerms:
   - matchExpressions:
     - key: beta.kubernetes.io/arch
@@ -30,13 +30,14 @@ spec:
       - amd64
       - arch
   overwrite:
-    annotations:
-      merge-annotation: "false"
-      overwrite-annotation: "true"
+    # annotations:
+    #   merge-annotation: "false"
+    #   overwrite-annotation: "true"
     labels:
-      merge-label: "false"
-      overwrite-label: "true"
-    taints:
-    - effect: PreferNoSchedule
-      key: key1
-      value: value1
+      not-found: "true"
+      # merge-label: "false"
+      # overwrite-label: "true"
+    # taints:
+    # - effect: PreferNoSchedule
+    #   key: key1
+    #   value: value1

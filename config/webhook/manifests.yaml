@@ -1,0 +1,54 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-kubebuilder-kube-node-labeler-io-v1alpha1-nodelabeler
+  failurePolicy: Fail
+  name: mnodelabeler.kb.io
+  rules:
+  - apiGroups:
+    - kubebuilder.kube.node.labeler.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - nodelabelers
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-kubebuilder-kube-node-labeler-io-v1alpha1-nodelabeler
+  failurePolicy: Fail
+  name: vnodelabeler.kb.io
+  rules:
+  - apiGroups:
+    - kubebuilder.kube.node.labeler.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - nodelabelers
+  sideEffects: None

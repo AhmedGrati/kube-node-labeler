@@ -21,6 +21,7 @@ import (
 
 func TestNodeLabelerSuccessfullCreation(t *testing.T) {
 	nodeLabeler := generateSampleNodeLabelerObject()
+	nodeLabeler.Default()
 	objs := []runtime.Object{nodeLabeler}
 
 	r, cl := getNodeLabelerReconciler(objs)
@@ -67,7 +68,8 @@ func TestNodesManagement(t *testing.T) {
 	assert.Equal(t, len(updatedNode.Labels), len(node.Labels)+3)
 
 	// verify that it will select only one node
-	nodeLabeler.Spec.Size = 1
+	nodeLabeler.Spec.Size = new(int)
+	*nodeLabeler.Spec.Size = int(1)
 	managedNodes, err = r.ManageNodes(nodes, nodeLabeler.Spec, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, len(managedNodes.Items), 1)
@@ -142,19 +144,19 @@ func TestRegisterWithManager(t *testing.T) {
 }
 
 func TestGetSizeOfNodesToManage(t *testing.T) {
-	nodeLabelerSize := 0
+	nodeLabelerSize := int(0)
 	filteredNodesSize := 2
 
-	size := getSizeOfNodesToManage(nodeLabelerSize, filteredNodesSize)
+	size := getSizeOfNodesToManage(&nodeLabelerSize, filteredNodesSize)
 	assert.Equal(t, size, filteredNodesSize)
 
 	nodeLabelerSize = 1
 
-	size = getSizeOfNodesToManage(nodeLabelerSize, filteredNodesSize)
+	size = getSizeOfNodesToManage(&nodeLabelerSize, filteredNodesSize)
 	assert.Equal(t, size, nodeLabelerSize)
 
 	nodeLabelerSize = 3
-	size = getSizeOfNodesToManage(nodeLabelerSize, filteredNodesSize)
+	size = getSizeOfNodesToManage(&nodeLabelerSize, filteredNodesSize)
 	assert.Equal(t, size, filteredNodesSize)
 
 }

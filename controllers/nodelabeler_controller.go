@@ -136,10 +136,10 @@ func (r *NodeLabelerReconciler) ManageNodes(nodes *corev1.NodeList, nodeLabelerS
 
 }
 
-func getSizeOfNodesToManage(nodeLabelerSize int, filteredNodesSize int) int {
+func getSizeOfNodesToManage(nodeLabelerSize *int, filteredNodesSize int) int {
 	size := filteredNodesSize
-	if nodeLabelerSize != 0 {
-		size = int(math.Min(float64(nodeLabelerSize), float64(filteredNodesSize)))
+	if nodeLabelerSize != nil && *nodeLabelerSize > 0 {
+		size = int(math.Min(float64(*nodeLabelerSize), float64(filteredNodesSize)))
 	}
 	return size
 }
@@ -159,7 +159,7 @@ func (r *NodeLabelerReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if len(nodeLabeler.Spec.NodeNamePatterns) > 0 {
 		filteredNodes = *helpers.FilterByRegex(&filteredNodes, nodeLabeler.Spec.NodeNamePatterns)
 	}
-	_, err := r.ManageNodes(&filteredNodes, nodeLabeler.Spec, getSizeOfNodesToManage(int(nodeLabeler.Spec.Size), len(filteredNodes.Items)))
+	_, err := r.ManageNodes(&filteredNodes, nodeLabeler.Spec, getSizeOfNodesToManage(nodeLabeler.Spec.Size, len(filteredNodes.Items)))
 	if err != nil {
 		r.Log.Error(err, "Error while managing nods")
 	}
